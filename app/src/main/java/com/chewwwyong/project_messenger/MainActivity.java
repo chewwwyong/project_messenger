@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             clientId = aiotMqttOption.getClientId();
             //userName = aiotMqttOption.getUsername();
-            //passWord = aiotMqttOption.getPassword();
+            //passWord = aiotMqttOption.getPassword();rfrf
         }
 
         /* 创建MqttConnectOptions对象并配置username和password */
