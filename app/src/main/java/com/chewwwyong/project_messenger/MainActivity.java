@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         edt_getText = findViewById(R.id.edt_getText);
 
         Intent it = getIntent();
-        who = it.getStringExtra("who");
+        who = it.getStringExtra("LoginName");
         addFriend = it.getStringArrayListExtra("FriendList");
         PUB_TOPIC = who;
 
