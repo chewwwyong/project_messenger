@@ -6,8 +6,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +23,7 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.math.BigInteger;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 
 import javax.crypto.Mac;
@@ -44,8 +47,13 @@ public class MainActivity extends AppCompatActivity {
     //private String userName = "chewwwyong";
     //private String passWord = "123456";
 
-    TextView txv_Message_box;
+    //TextView txv_Message_box;
     EditText edt_getText;
+
+    ListView ltv_Message_box;
+    // listview
+    ArrayList item = new ArrayList();
+
     String who;
     String me;
     ArrayList<String> addFriend = new ArrayList<>();
@@ -56,9 +64,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        txv_Message_box = findViewById(R.id.txv_Message_box);
+        //txv_Message_box = findViewById(R.id.txv_Message_box);
         edt_getText = findViewById(R.id.edt_getText);
-
+        ltv_Message_box = findViewById(R.id.ltv_Message_box);
         Intent it = getIntent();
         me = it.getStringExtra("LoginName");
         who = it.getStringExtra("send_to_who");
@@ -97,10 +105,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "topic: " + topic + ", msg: " + new String(message.getPayload()));
                 Toast.makeText(MainActivity.this,"Topic: " + topic + "\n msg: \n" + new String(message.getPayload()),Toast.LENGTH_SHORT).show();
 
-                txv_Message_box.setText(
-                            txv_Message_box.getText() +
-                                    "\n" + who + " : " + new String(message.getPayload())
-                );
+                //txv_Message_box.setText(
+                //            txv_Message_box.getText() +
+                //                    "\n" + who + " : " + new String(message.getPayload())
+                //);
+
+                // new message
+                item.add("\n" + who + " : " + new String(message.getPayload()));
+                ArrayAdapter adapter = new ArrayAdapter(MainActivity.this, android.R.layout.simple_list_item_1, item);
+                ltv_Message_box.setAdapter(adapter);
             }
 
             @Override
@@ -141,8 +154,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 publishMessage(edt_getText.getText().toString());
-                txv_Message_box.setText(txv_Message_box.getText().toString() +
-                        "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_getText.getText().toString());
+                //txv_Message_box.setText(txv_Message_box.getText().toString() +
+                //        "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_getText.getText().toString());
+
+                // new message
+                item.add("\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_getText.getText().toString());
+                ArrayAdapter adapter = new ArrayAdapter(MainActivity.this, android.R.layout.simple_list_item_1, item);
+                ltv_Message_box.setAdapter(adapter);
             }
         });
     }

@@ -19,6 +19,7 @@ public class who_login extends AppCompatActivity {
         setContentView(R.layout.activity_who_login);
 
         input_username = findViewById(R.id.input_username);
+
         btn_login = findViewById(R.id.btn_login);
         btn_login.setOnClickListener(new View.OnClickListener() {
             @Override
