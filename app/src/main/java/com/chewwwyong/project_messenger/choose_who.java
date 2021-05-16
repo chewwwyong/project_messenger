@@ -25,25 +25,28 @@ import java.util.ArrayList;
 
 public class choose_who extends AppCompatActivity {
 
-    //TextView txv_test,txv_test2;
     EditText edt_addFriend;
     Button btn_subcribe;
     String LoginName;
     ArrayList<String> addFriend = new ArrayList<>();
 
-    ListView ltv_Subscribe;
     // listview
     ArrayList item = new ArrayList();
+    ListView ltv_Subscribe;
+    ArrayAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_who);
 
-        //txv_test = findViewById(R.id.txv_test);
-        //txv_test2 = findViewById(R.id.txv_test2);
         edt_addFriend = findViewById(R.id.edt_addFriend);
         btn_subcribe  = findViewById(R.id.btn_subcribe);
+        ltv_Subscribe= findViewById(R.id.ltv_Subscribe);
+
+        item = new ArrayList();
+        adapter = new ArrayAdapter(choose_who.this, android.R.layout.simple_list_item_1, item);
+        ltv_Subscribe.setAdapter(adapter);
 
         Intent it = getIntent();
         LoginName = it.getStringExtra("LoginName");
@@ -52,19 +55,17 @@ public class choose_who extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 addFriend.add(edt_addFriend.getText().toString());
-                //txv_test.setText(edt_addFriend.getText().toString());
                 // new subscribe
                 item.add(edt_addFriend.getText().toString());
-                ArrayAdapter adapter = new ArrayAdapter(choose_who.this, android.R.layout.simple_list_item_1, item);
-                ltv_Subscribe.setAdapter(adapter);
+                adapter.notifyDataSetChanged();
+                ltv_Subscribe.smoothScrollToPosition(item.size()-1);
             }
         });
 
-        ltv_Subscribe= findViewById(R.id.ltv_Subscribe);
         ltv_Subscribe.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent it = new Intent(choose_who.this,MainActivity.class);
+                Intent it = new Intent(choose_who.this,talk_in_private.class);
                 it.putExtra("LoginName", LoginName);
                 String name = String.valueOf(adapterView.getItemAtPosition(i)); //  抓指定位置的名稱
                 //Toast.makeText(choose_who.this, name, Toast.LENGTH_SHORT).show();
@@ -73,29 +74,16 @@ public class choose_who extends AppCompatActivity {
                 startActivity(it);
             }
         });
-
-
-        /*txv_test.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent it = new Intent(choose_who.this,MainActivity.class);
-                it.putExtra("LoginName", LoginName);
-                it.putExtra("send_to_who", txv_test.getText().toString()); // 選擇要私訊的人
-                it.putStringArrayListExtra("FriendList", addFriend);
-                startActivity(it);
-
-            }
-        });*/
     }
 
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // 設置要用哪個menu檔做為選單
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
-    }
+    }*/
 
-    @Override
+    /*@Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // 依照id判斷點了哪個項目並做相應事件
         if (item.getItemId() == R.id.menu_logout) {
@@ -127,6 +115,5 @@ public class choose_who extends AppCompatActivity {
 
         }
         return true;
-    }
-
+    }*/
 }

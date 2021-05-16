@@ -14,16 +14,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Project_messenger">
+        <activity android:name=".who_login"></activity>
+        <activity android:name=".talk_in_private" />
         <activity android:name=".choose_who" />
-        <activity android:name=".who_login">
+        <activity android:name=".Chat_Type">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity" />
-        <!-- Mqtt Service -->
+        <activity android:name=".MainActivity" /> <!-- Mqtt Service -->
         <service android:name="org.eclipse.paho.android.service.MqttService" />
     </application>
 

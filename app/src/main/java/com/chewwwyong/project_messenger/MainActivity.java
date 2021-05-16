@@ -2,6 +2,7 @@ package com.chewwwyong.project_messenger;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -22,6 +24,8 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -42,6 +46,8 @@ import com.chewwwyong.project_messenger.Util.BitmapUtil;
 import com.chewwwyong.project_messenger.Util.PermissionTool;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -83,34 +89,9 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 public class MainActivity extends AppCompatActivity {
-    private final String TAG = "AiotMqtt";
-    /* 设备三元组信息 */
-    final private String PRODUCTKEY = "a11xsrWmW14";
-    final private String DEVICENAME = "paho_android";
-    final private String DEVICESECRET = "tLMT9QWD36U2SArglGqcHCDK9rK9nOrA";
 
-    /* 自动Topic, 用于上报消息 */
-    private String PUB_TOPIC = "who";
-    /* 自动Topic, 用于接受消息 */
-    private String SUB_TOPIC = "diderwei";
-
-
-    final String host = "tcp://test.mosquitto.org:1883";
-    private String clientId = "project_Messenger_Subcribe";
-    //private String userName = "chewwwyong";
-    //private String passWord = "123456";
-
-    //TextView txv_Message_box;
     EditText edt_getText;
-
     ListView ltv_Message_box;
-    // listview
-    ArrayList item = new ArrayList();
-
-    String who;
-    String me;
-    ArrayList<String> addFriend = new ArrayList<>();
-    MqttAndroidClient mqttAndroidClient;
 
     // fireBase 相關變數
     // 取得結果用的 Request Code
@@ -156,22 +137,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //txv_Message_box = findViewById(R.id.txv_Message_box);
         edt_getText = findViewById(R.id.edtInput);
         ltv_Message_box = findViewById(R.id.ltv_Message_box);
-        Intent it = getIntent();
-        me = it.getStringExtra("LoginName");
-        who = it.getStringExtra("send_to_who");
-
-        //addFriend = it.getStringArrayListExtra("FriendList");
-        addFriend.add(me); // 要知道誰有私訊我
-
-        PUB_TOPIC = who;
 
         context = MainActivity.this;
-
-        //setTitle(getResources().getString(R.string.titleName));
-
 
         //================ firebase ================
         setUUID();//取得裝置uuid
@@ -193,205 +162,23 @@ public class MainActivity extends AppCompatActivity {
         });
         //================ firebase ================
 
-
-
-        /* 获取Mqtt建连信息clientId, username, password */
-        AiotMqttOption aiotMqttOption = new AiotMqttOption().getMqttOption(PRODUCTKEY, DEVICENAME, DEVICESECRET);
-        if (aiotMqttOption == null) {
-            Log.e(TAG, "device info error");
-        } else {
-            clientId = aiotMqttOption.getClientId();
-            //userName = aiotMqttOption.getUsername();
-            //passWord = aiotMqttOption.getPassword();
-        }
-
-        /* 创建MqttConnectOptions对象并配置username和password */
-        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
-        //mqttConnectOptions.setUserName(userName);
-        //mqttConnectOptions.setPassword(passWord.toCharArray());
-
-
-        /* 创建MqttAndroidClient对象, 并设置回调接口 */
-        mqttAndroidClient = new MqttAndroidClient(getApplicationContext(), host, clientId);
-        mqttAndroidClient.setCallback(new MqttCallback() {
-            @Override
-            public void connectionLost(Throwable cause) {
-                Log.i(TAG, "connection lost");
-            }
-
-            @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-                Log.i(TAG, "topic: " + topic + ", msg: " + new String(message.getPayload()));
-                Toast.makeText(MainActivity.this,"Topic: " + topic + "\n msg: \n" + new String(message.getPayload()),Toast.LENGTH_SHORT).show();
-
-                //txv_Message_box.setText(
-                //            txv_Message_box.getText() +
-                //                    "\n" + who + " : " + new String(message.getPayload())
-                //);
-
-                // new message
-                item.add("\n" + who + " : " + new String(message.getPayload()));
-                ArrayAdapter adapter = new ArrayAdapter(MainActivity.this, android.R.layout.simple_list_item_1, item);
-                ltv_Message_box.setAdapter(adapter);
-            }
-
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-                Log.i(TAG, "msg delivered");
-            }
-        });
-
-        /* Mqtt建连 */
-        try {
-            mqttAndroidClient.connect(mqttConnectOptions,null, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.i(TAG, "connect succeed");
-                    //    Toast.makeText(MainActivity.this,"connect succeed",Toast.LENGTH_SHORT).show();
-
-                    for(int i=0;i<addFriend.size();i++) {
-                        SUB_TOPIC = addFriend.get(i);
-                        subscribeTopic(SUB_TOPIC);
-                    }
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.i(TAG, "connect failed");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-
-
-
         /* 通过按键发布消息 */
         FloatingActionButton pubButton = findViewById(R.id.fabSend);
         pubButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                publishMessage(edt_getText.getText().toString());
-                //txv_Message_box.setText(txv_Message_box.getText().toString() +
-                //        "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_getText.getText().toString());
-
-                // new message
-                item.add("\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_getText.getText().toString());
-                ArrayAdapter adapter = new ArrayAdapter(MainActivity.this, android.R.layout.simple_list_item_1, item);
-                ltv_Message_box.setAdapter(adapter);
-                sendMsg();
+                if (edt_getText.getText().toString().trim().length() > 0)   //trim 把前後空格 tab 清除
+                {
+                    sendMsg();
+                    //Toast.makeText(MainActivity.this, "!" + edt_getText.getText().toString() + "!", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    //Toast.makeText(MainActivity.this, edt_getText.getText().toString(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
-
-    /**
-     * 订阅特定的主题
-     * @param topic mqtt主题
-     */
-    public void subscribeTopic(String topic) {
-        try {
-            mqttAndroidClient.subscribe(topic, 0, null, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.i(TAG, "subscribed succeed");
-                    //   Toast.makeText(MainActivity.this,"subscribed succeed",Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.i(TAG, "subscribed failed");
-                }
-            });
-
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 向默认的主题/user/update发布消息
-     * @param payload 消息载荷
-     */
-    public void publishMessage(String payload) {
-        try {
-            if (mqttAndroidClient.isConnected() == false) {
-                mqttAndroidClient.connect();
-            }
-
-            MqttMessage message = new MqttMessage();
-            message.setPayload(payload.getBytes());
-            message.setQos(0);
-            mqttAndroidClient.publish(PUB_TOPIC, message,null, new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.i(TAG, "publish succeed!");
-                    //   Toast.makeText(MainActivity.this,"publish succeed",Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.i(TAG, "publish failed!");
-                }
-            });
-        } catch (MqttException e) {
-            Log.e(TAG, e.toString());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * MQTT建连选项类，输入设备三元组productKey, deviceName和deviceSecret, 生成Mqtt建连参数clientId，username和password.
-     */
-    class AiotMqttOption {
-        private String username = "";
-        private String password = "";
-        private String clientId = "";
-
-        public String getUsername() { return this.username;}
-        public String getPassword() { return this.password;}
-        public String getClientId() { return this.clientId;}
-
-        /**
-         * 获取Mqtt建连选项对象
-         * @param productKey 产品秘钥
-         * @param deviceName 设备名称
-         * @param deviceSecret 设备机密
-         * @return AiotMqttOption对象或者NULL
-         */
-        public AiotMqttOption getMqttOption(String productKey, String deviceName, String deviceSecret) {
-            if (productKey == null || deviceName == null || deviceSecret == null) {
-                return null;
-            }
-
-            try {
-                String timestamp = Long.toString(System.currentTimeMillis());
-
-                // clientId
-                this.clientId = productKey + "." + deviceName + "|timestamp=" + timestamp +
-                        ",_v=paho-android-1.0.0,securemode=2,signmethod=hmacsha256|";
-
-                // userName
-                this.username = deviceName + "&" + productKey;
-
-                // password
-                String macSrc = "clientId" + productKey + "." + deviceName + "deviceName" +
-                        deviceName + "productKey" + productKey + "timestamp" + timestamp;
-                String algorithm = "HmacSHA256";
-                Mac mac = Mac.getInstance(algorithm);
-                SecretKeySpec secretKeySpec = new SecretKeySpec(deviceSecret.getBytes(), algorithm);
-                mac.init(secretKeySpec);
-                byte[] macRes = mac.doFinal(macSrc.getBytes());
-                password = String.format("%064x", new BigInteger(1, macRes));
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
-
-            return this;
-        }
-    }
-
 
     @Override
     protected void onPause() {
@@ -963,4 +750,47 @@ public class MainActivity extends AppCompatActivity {
             dialog.show();
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // 設置要用哪個menu檔做為選單
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // 依照id判斷點了哪個項目並做相應事件
+        if (item.getItemId() == R.id.menu_logout) {
+
+            // 按下「登出」要做的事
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setCancelable(false)
+                    .setTitle("登出")
+                    .setMessage("確定邀登出了嗎？")
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            AuthUI.getInstance().signOut(MainActivity.this)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            Toast.makeText(MainActivity.this, "已登出囉！", Toast.LENGTH_SHORT).show();
+                                            finish();
+                                        }
+                                    });
+                        }
+                    }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+
+                }
+            }).create();
+            builder.show();
+
+        }
+        return true;
+    }
+
+
 }
