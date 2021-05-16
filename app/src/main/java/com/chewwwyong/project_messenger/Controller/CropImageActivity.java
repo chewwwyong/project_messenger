@@ -1,4 +1,4 @@
-package com.chewwwyong.project_messenger;
+package com.chewwwyong.project_messenger.Controller;
 
 import android.content.Intent;
 import android.graphics.Bitmap;

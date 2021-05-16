@@ -7,25 +7,45 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Project_messenger">
-        <activity android:name=".who_login"></activity>
-        <activity android:name=".talk_in_private" />
-        <activity android:name=".choose_who" />
-        <activity android:name=".Chat_Type">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        android:theme="@style/Theme.Project_messenger"
+        android:requestLegacyExternalStorage="true" >
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity android:name=".MainActivity" /> <!-- Mqtt Service -->
+    <activity android:name=".who_login" />
+    <activity android:name=".Controller.CropImageActivity" />
+    <activity android:name=".talk_in_private" />
+    <activity android:name=".choose_who" />
+    <activity android:name=".Chat_Type">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
+    <activity android:name=".Controller.MainActivity" />
+    <!-- Mqtt Service -->
         <service android:name="org.eclipse.paho.android.service.MqttService" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.chewwwyong.project_messenger.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
     </application>
 
 </manifest>

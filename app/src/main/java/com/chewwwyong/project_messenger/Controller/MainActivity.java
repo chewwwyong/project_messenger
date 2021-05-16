@@ -1,17 +1,8 @@
-package com.chewwwyong.project_messenger;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+package com.chewwwyong.project_messenger.Controller;
 
 import android.Manifest;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -22,7 +13,6 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +22,6 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -41,13 +30,23 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
+import com.chewwwyong.project_messenger.BuildConfig;
+import com.chewwwyong.project_messenger.ChatMessage;
+import com.chewwwyong.project_messenger.R;
 import com.chewwwyong.project_messenger.Util.BitmapUtil;
 import com.chewwwyong.project_messenger.Util.PermissionTool;
+import com.chewwwyong.project_messenger.Util.Utils;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
@@ -56,24 +55,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.annotations.Nullable;
-//import com.google.firebase.installations.Utils;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.IMqttActionListener;
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.IMqttToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -81,12 +69,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
-import com.chewwwyong.project_messenger.Util.Utils;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+//import com.google.firebase.installations.Utils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -103,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
     private final int AVATAR_CROP_REQUEST = 5006;
     public static final int SIGN_IN_REQUEST = 1;
     private static final int REQUEST_CAMERA_AND_WRITE_STORAGE = 5000;
-    public static final String AUTHORITY = "com.chewwwyong.project_messenger";
+    public static final String AUTHORITY = "com.chewwwyong.project_messenger.fileprovider";
 
     private Toast toast;
 
@@ -116,7 +102,6 @@ public class MainActivity extends AppCompatActivity {
     private InputMethodManager imm;
     private String uuid;
 
-    private Uri camera_uri;
     private File cameraFile;
     private String cameraFileName;
     private String cameraPath;
@@ -164,18 +149,15 @@ public class MainActivity extends AppCompatActivity {
 
         /* 通过按键发布消息 */
         FloatingActionButton pubButton = findViewById(R.id.fabSend);
-        pubButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (edt_getText.getText().toString().trim().length() > 0)   //trim 把前後空格 tab 清除
-                {
-                    sendMsg();
-                    //Toast.makeText(MainActivity.this, "!" + edt_getText.getText().toString() + "!", Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    //Toast.makeText(MainActivity.this, edt_getText.getText().toString(), Toast.LENGTH_SHORT).show();
-                }
+        pubButton.setOnClickListener(view -> {
+            if (edt_getText.getText().toString().trim().length() > 0)   //trim 把前後空格 tab 清除
+            {
+                sendMsg();
+                //Toast.makeText(MainActivity.this, "!" + edt_getText.getText().toString() + "!", Toast.LENGTH_SHORT).show();
+            }
+            else
+            {
+                //Toast.makeText(MainActivity.this, edt_getText.getText().toString(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -192,9 +174,7 @@ public class MainActivity extends AppCompatActivity {
         keyList = new ArrayList<>();
         Set<String> saveKeyList = new HashSet<>();
         saveKeyList = sharedPreferences.getStringSet("keyList", saveKeyList);
-        for (String s : saveKeyList) {
-            keyList.add(s);
-        }
+        keyList.addAll(saveKeyList);
         avatarPath = sharedPreferences.getString(getResources().getString(R.string.avatarPath), "");
 
     }
@@ -286,10 +266,20 @@ public class MainActivity extends AppCompatActivity {
             File dir = Utils.getInstance().getFireDir();
             cameraFile = new File(dir, cameraFileName);
             cameraPath = cameraFile.getPath();
+            Uri camera_uri;
+
             if (Build.VERSION.SDK_INT >= 24) {
                 camera_uri = FileProvider.getUriForFile(getApplicationContext(),
                         AUTHORITY, cameraFile);
-            } else {
+            }
+
+            /*
+            if (Build.VERSION.SDK_INT >= 24) {
+                camera_uri = FileProvider.getUriForFile(getApplicationContext(),
+                        BuildConfig.APPLICATION_ID + ".provider", cameraFile);
+            }
+            */
+            else {
                 camera_uri = Uri.fromFile(cameraFile);
             }
 
@@ -308,7 +298,6 @@ public class MainActivity extends AppCompatActivity {
                             REQUEST_CAMERA_AND_WRITE_STORAGE);
 
         }
-
     }
 
 
@@ -352,21 +341,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendMsg() {
         String msg = edt_getText.getText().toString();
-        String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        String userName = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getDisplayName();
         long time = new Date().getTime();
 
         String key = reference.push().getKey();
         keyList.add(key);
         if (TextUtils.isEmpty(avatarPath))
             avatarPath = "";
+        assert key != null;
         reference.child(key).setValue(new ChatMessage(userName, msg, time, uuid, "", avatarPath));
 
         edt_getText.setText("");
-        Set<String> saveKeyList = new HashSet<>();
-        for (int i = 0; i < keyList.size(); i++) {
-            saveKeyList.add(keyList.get(i));
-        }
-        sharedPreferences.edit().putStringSet("keyList", saveKeyList).commit();
+        Set<String> saveKeyList = new HashSet<>(keyList);
+        sharedPreferences.edit().putStringSet("keyList", saveKeyList).apply();
 
     }
 
@@ -442,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
             storageReference = storageReference.child(data.getAvatarPath());
             storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                     .load(uri)
-                    .into(img_avatar)).addOnFailureListener(e -> e.printStackTrace());
+                    .into(img_avatar)).addOnFailureListener(Throwable::printStackTrace);
         }
 
         if (data.getUuid().equals(uuid)) {//如果是user才問要不要換
@@ -506,7 +493,7 @@ public class MainActivity extends AppCompatActivity {
                     File tempFile = getCacheDir();
 
                     final Uri uri = Uri.fromFile(Utils.getInstance().compressUploadPhoto(tempFile, cameraPath, cameraFileName));
-                    doCropPhoto(uri, 0, requestCode);
+                    doCropPhoto(uri, requestCode);
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -518,17 +505,17 @@ public class MainActivity extends AppCompatActivity {
 
         } else if (requestCode == ALBUM_REQUEST || requestCode == AVATAR_ALBUM_REQUEST) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
-                doCropPhoto(data.getData(), 0, requestCode);
+                doCropPhoto(data.getData(), requestCode);
 
             } else {
                 toast.setText(getResources().getString(R.string.retryAgain));
                 toast.show();
             }
         } else if (requestCode == AVATAR_CROP_REQUEST || requestCode == CROP_REQUEST) {
-            if (data.hasExtra(CropImageActivity.EXTRA_IMAGE) && data != null) {
+            if (data.hasExtra(CropImageActivity.EXTRA_IMAGE)) {
                 //取得裁切後圖片的暫存位置
                 String filePath = data.getStringExtra(CropImageActivity.EXTRA_IMAGE);
-                if (filePath.indexOf(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "DCIM") != -1) {
+                if (filePath.contains(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "DCIM")) {
                     File imgFile = new File(filePath);
                     if (imgFile.exists()) {
                         //代入已設定好的圖片size
@@ -536,10 +523,9 @@ public class MainActivity extends AppCompatActivity {
                         //使用寫好的方法將路徑檔做成bitmap檔
                         Bitmap realBitmap = BitmapUtil.decodeSampledBitmap(imgFile.getAbsolutePath(), photoSize, photoSize);
                         File file = Utils.getInstance().bitmapToFile(getCacheDir(), cameraFileName, realBitmap);
-
                         if (requestCode == AVATAR_CROP_REQUEST) {//改大頭貼的動作才換路徑
                             avatarPath = file.getName();
-                            sharedPreferences.edit().putString(getResources().getString(R.string.avatarPath), avatarPath).commit();
+                            sharedPreferences.edit().putString(getResources().getString(R.string.avatarPath), avatarPath).apply();
                         }
 
                         uploadFile(Uri.fromFile(file), file.getName(), requestCode);
@@ -549,10 +535,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void doCropPhoto(Uri uri, int degree, int requestCode) {
+    private void doCropPhoto(Uri uri, int requestCode) {
         Intent intent = new Intent(context, CropImageActivity.class);
         intent.setData(uri);
-        intent.putExtra(getResources().getString(R.string.degree), degree);
+        intent.putExtra(getResources().getString(R.string.degree), 0);
         if (requestCode == ALBUM_REQUEST || requestCode == CAMERA_REQUEST) {
             startActivityForResult(intent, CROP_REQUEST);
         } else if (requestCode == AVATAR_ALBUM_REQUEST || requestCode == AVATAR_CAMERA_REQUEST) {
@@ -572,18 +558,16 @@ public class MainActivity extends AppCompatActivity {
 
         UploadTask uploadTask = storageReference.putFile(uri, metadata);
         uploadTask.addOnSuccessListener(taskSnapshot -> {
-            String userName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+            String userName = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getDisplayName();
             long time = new Date().getTime();
 
             if (requestCode == CAMERA_REQUEST || requestCode == ALBUM_REQUEST || requestCode == CROP_REQUEST) {//上傳圖片
                 String key = reference.push().getKey();
                 keyList.add(key);
+                assert key != null;
                 reference.child(key).setValue(new ChatMessage(userName, "", time, uuid, fileName, avatarPath));
-                Set<String> saveKeyList = new HashSet<>();
-                for (int i = 0; i < keyList.size(); i++) {
-                    saveKeyList.add(keyList.get(i));
-                }
-                sharedPreferences.edit().putStringSet("keyList", saveKeyList).commit();
+                Set<String> saveKeyList = new HashSet<>(keyList);
+                sharedPreferences.edit().putStringSet("keyList", saveKeyList).apply();
 
             } else if (requestCode == AVATAR_CROP_REQUEST) {//更新大頭貼
 
@@ -592,26 +576,27 @@ public class MainActivity extends AppCompatActivity {
                     map.put(keyList.get(i) + "/avatarPath", fileName);
                 }
                 reference.updateChildren(map);
-                sharedPreferences.edit().putString(getResources().getString(R.string.avatarPath), fileName).commit();
+                sharedPreferences.edit().putString(getResources().getString(R.string.avatarPath), fileName).apply();
 
             }
 
 
-        }).addOnFailureListener(e -> e.printStackTrace());
+        }).addOnFailureListener(Throwable::printStackTrace);
     }
 
     //處理訊息的地方
     public class ChatMessageHolder extends RecyclerView.ViewHolder {
-        private TextView txvUser_Other;
-        private TextView txvMsg_Other;
-        private TextView txvTime_Other;
+        private final TextView txvUser_Other;
+        private final TextView txvMsg_Other;
+        private final TextView txvTime_Other;
 
-        private TextView txvMsg_User;
-        private TextView txvTime_User;
-        private TextView txv_time_imgOther;
-        private ImageView img_avatar_other, img_avatar_user;
+        private final TextView txvMsg_User;
+        private final TextView txvTime_User;
+        private final TextView txv_time_imgOther;
+        private final ImageView img_avatar_other;
+        private final ImageView img_avatar_user;
 
-        private TextView txv_time_imgUSer;
+        private final TextView txv_time_imgUSer;
         RelativeLayout userLayout, otherUserLayout;
 
         ImageView imgMsg_user, imgMsg_other;
@@ -659,7 +644,7 @@ public class MainActivity extends AppCompatActivity {
                             storageReference = storageReference.child(avatarPath);
                             storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                                     .load(uri)
-                                    .into(img_avatar_other)).addOnFailureListener(e -> e.printStackTrace());
+                                    .into(img_avatar_other)).addOnFailureListener(Throwable::printStackTrace);
                         }
 
                         if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
@@ -701,7 +686,7 @@ public class MainActivity extends AppCompatActivity {
                             storageReference = storageReference.child(avatarPath);
                             storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                                     .load(uri)
-                                    .into(img_avatar_user)).addOnFailureListener(e -> e.printStackTrace());
+                                    .into(img_avatar_user)).addOnFailureListener(Throwable::printStackTrace);
                         }
 
                         if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
@@ -722,7 +707,7 @@ public class MainActivity extends AppCompatActivity {
                             storageReference = storageReference.child(filePath);
                             storageReference.getDownloadUrl().addOnSuccessListener(uri -> Glide.with(context)
                                     .load(uri)
-                                    .into(imgMsg_user)).addOnFailureListener(e -> e.printStackTrace());
+                                    .into(imgMsg_user)).addOnFailureListener(Throwable::printStackTrace);
 
                             txv_time_imgUSer.setVisibility(View.VISIBLE);
                             txvTime_User.setVisibility(View.GONE);
@@ -767,25 +752,14 @@ public class MainActivity extends AppCompatActivity {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setCancelable(false)
                     .setTitle("登出")
-                    .setMessage("確定邀登出了嗎？")
-                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            AuthUI.getInstance().signOut(MainActivity.this)
-                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            Toast.makeText(MainActivity.this, "已登出囉！", Toast.LENGTH_SHORT).show();
-                                            finish();
-                                        }
-                                    });
-                        }
-                    }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
+                    .setMessage("確定要登出了嗎？")
+                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> AuthUI.getInstance().signOut(MainActivity.this)
+                            .addOnCompleteListener(task -> {
+                                Toast.makeText(MainActivity.this, "已登出囉！", Toast.LENGTH_SHORT).show();
+                                finish();
+                            })).setNegativeButton(android.R.string.no, (dialogInterface, i) -> {
 
-                }
-            }).create();
+                            }).create();
             builder.show();
 
         }

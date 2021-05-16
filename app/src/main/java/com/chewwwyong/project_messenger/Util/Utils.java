@@ -112,7 +112,7 @@ public class Utils {
         if (height > reqHeight || width > reqWidth) {
             final int heightRatio = Math.round((float) height/ (float) reqHeight);
             final int widthRatio = Math.round((float) width / (float) reqWidth);
-            inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
+            inSampleSize = Math.min(heightRatio, widthRatio);
         }
         return inSampleSize;
     }
