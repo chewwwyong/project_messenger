@@ -16,6 +16,7 @@ public class choose_who extends AppCompatActivity {
     TextView txv_test,txv_test2;
     EditText edt_addFriend;
     Button btn_subcribe;
+    String LoginName;
     ArrayList<String> addFriend = new ArrayList<>();
 
     @Override
@@ -27,6 +28,9 @@ public class choose_who extends AppCompatActivity {
         txv_test2 = findViewById(R.id.txv_test2);
         edt_addFriend = findViewById(R.id.edt_addFriend);
         btn_subcribe  = findViewById(R.id.btn_subcribe);
+
+        Intent it = getIntent();
+        LoginName = it.getStringExtra("LoginName");
 
         btn_subcribe.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -40,7 +44,7 @@ public class choose_who extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent it = new Intent(choose_who.this,MainActivity.class);
-                it.putExtra("who", "bigIN_GG");
+                it.putExtra("LoginName", LoginName);
                 it.putStringArrayListExtra("FriendList", addFriend);
                 startActivity(it);
 
