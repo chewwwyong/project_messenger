@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "561480725266",
+    "project_id": "project-messenger-bdce0",
+    "storage_bucket": "project-messenger-bdce0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:561480725266:android:dbc4338eac4f354f5eb9cb",
+        "android_client_info": {
+          "package_name": "com.chewwwyong.project_messenger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "561480725266-khgvghf0f85jd23en38vtsfqt88f0bo0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfTLMKf-DYepsbSD_Z6M9jXcjgQ1OLTm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "561480725266-khgvghf0f85jd23en38vtsfqt88f0bo0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
