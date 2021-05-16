@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     TextView txv_Message_box;
     EditText edt_getText;
     String who;
+    String me;
     ArrayList<String> addFriend = new ArrayList<>();
     MqttAndroidClient mqttAndroidClient;
 
@@ -59,8 +60,12 @@ public class MainActivity extends AppCompatActivity {
         edt_getText = findViewById(R.id.edt_getText);
 
         Intent it = getIntent();
-        who = it.getStringExtra("LoginName");
-        addFriend = it.getStringArrayListExtra("FriendList");
+        me = it.getStringExtra("LoginName");
+        who = it.getStringExtra("send_to_who");
+
+        //addFriend = it.getStringArrayListExtra("FriendList");
+        addFriend.add(me); // 要知道誰有私訊我
+
         PUB_TOPIC = who;
 
         /* 获取Mqtt建连信息clientId, username, password */
@@ -70,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             clientId = aiotMqttOption.getClientId();
             //userName = aiotMqttOption.getUsername();
-            //passWord = aiotMqttOption.getPassword();rfrf
+            //passWord = aiotMqttOption.getPassword();
         }
 
         /* 创建MqttConnectOptions对象并配置username和password */
@@ -91,9 +96,11 @@ public class MainActivity extends AppCompatActivity {
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 Log.i(TAG, "topic: " + topic + ", msg: " + new String(message.getPayload()));
                 Toast.makeText(MainActivity.this,"Topic: " + topic + "\n msg: \n" + new String(message.getPayload()),Toast.LENGTH_SHORT).show();
+
                 txv_Message_box.setText(
-                        txv_Message_box.getText() +
-                        "\n" + who + " : " + new String(message.getPayload()));
+                            txv_Message_box.getText() +
+                                    "\n" + who + " : " + new String(message.getPayload())
+                );
             }
 
             @Override

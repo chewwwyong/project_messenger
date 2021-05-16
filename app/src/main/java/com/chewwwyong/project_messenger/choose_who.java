@@ -45,6 +45,7 @@ public class choose_who extends AppCompatActivity {
             public void onClick(View view) {
                 Intent it = new Intent(choose_who.this,MainActivity.class);
                 it.putExtra("LoginName", LoginName);
+                it.putExtra("send_to_who", txv_test.getText().toString()); // 選擇要私訊的人
                 it.putStringArrayListExtra("FriendList", addFriend);
                 startActivity(it);
 
