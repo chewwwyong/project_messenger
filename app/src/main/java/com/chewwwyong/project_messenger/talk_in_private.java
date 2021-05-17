@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -46,8 +48,8 @@ public class talk_in_private extends AppCompatActivity {
     //private String passWord = "123456";
 
     EditText edt_input;
-    Button btn_submit;
     ListView ltv_message;
+    FloatingActionButton floatingActionButton;
     // listview
     ArrayList item = new ArrayList();
     ArrayAdapter adapter;
@@ -63,8 +65,8 @@ public class talk_in_private extends AppCompatActivity {
         setContentView(R.layout.activity_talk_in_private);
 
         edt_input = findViewById(R.id.edt_input);
-        btn_submit = findViewById(R.id.btn_submit);
         ltv_message = findViewById(R.id.ltv_message);
+        floatingActionButton = findViewById(R.id.floatingActionButton);
 
         Intent it = getIntent();
         me = it.getStringExtra("LoginName");
@@ -110,7 +112,7 @@ public class talk_in_private extends AppCompatActivity {
                 //Toast.makeText(talk_in_private.this,"Topic: " + topic + "\n msg: \n" + new String(message.getPayload()),Toast.LENGTH_SHORT).show();
 
                 // new message
-                item.add("\n" + who + " : " + new String(message.getPayload()));
+                item.add(who + " : " + new String(message.getPayload()));
                 adapter.notifyDataSetChanged();
                 ltv_message.smoothScrollToPosition(item.size()-1);
             }
@@ -146,11 +148,11 @@ public class talk_in_private extends AppCompatActivity {
         }
 
         /* 通过按键发布消息 */
-        btn_submit.setOnClickListener(new View.OnClickListener() {
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 publishMessage(edt_input.getText().toString());
-                item.add("\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_input.getText().toString());
+                item.add("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_input.getText().toString());
                 adapter.notifyDataSetChanged();
                 ltv_message.smoothScrollToPosition(item.size()-1);
             }
