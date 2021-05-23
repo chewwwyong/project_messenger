@@ -95,7 +95,14 @@ public class choose_who extends AppCompatActivity {
                     item.add(edt_addFriend.getText().toString());
                 }
                 adapter.notifyDataSetChanged();
-                ltv_Subscribe.smoothScrollToPosition(item.size()-1);
+                if (return_choose_who== 1)
+                {
+                    ltv_Subscribe.smoothScrollToPosition(reFriendList.size()-1);
+                }
+                else
+                {
+                    ltv_Subscribe.smoothScrollToPosition(item.size()-1);
+                }
             }
         });
 
@@ -124,15 +131,16 @@ public class choose_who extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent it = new Intent(choose_who.this, Chat_Type.class);
-                if (return_choose_who== 1)
+                if (return_choose_who  == 1)
                 {
                     it.putStringArrayListExtra("reFriendList", reFriendList);
+                    it.putExtra("return_choose_who", 1);
                 }
                 else
                 {
                     it.putStringArrayListExtra("FriendList", addFriend);
+                    it.putExtra("return_choose_who", 0);
                 }
-                it.putExtra("return_choose_who", 1);
                 it.putExtra("return_chat_type", 2);
                 startActivity(it);
             }

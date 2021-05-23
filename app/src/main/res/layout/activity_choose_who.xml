@@ -21,6 +21,7 @@
         android:layout_width="317dp"
         android:layout_height="47dp"
         android:ems="10"
+        android:hint="請點選此處以輸入人名"
         android:inputType="textPersonName"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
