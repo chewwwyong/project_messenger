@@ -6,6 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".choose_who">
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_return_chat_type"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="mini"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="?attr/actionModeCloseDrawable" />
+
     <EditText
         android:id="@+id/edt_addFriend"
         android:layout_width="317dp"
@@ -16,8 +26,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.004" />
+        app:layout_constraintTop_toBottomOf="@+id/fab_return_chat_type"
+        app:layout_constraintVertical_bias="0.001" />
 
     <Button
         android:id="@+id/btn_subcribe"
@@ -27,9 +37,9 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.002" />
+        app:layout_constraintStart_toEndOf="@+id/edt_addFriend"
+        app:layout_constraintTop_toBottomOf="@+id/fab_return_chat_type"
+        app:layout_constraintVertical_bias="0.0" />
 
     <ListView
         android:id="@+id/ltv_Subscribe"
@@ -46,10 +56,9 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
         android:text="好友列表"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/edt_addFriend" />
 </androidx.constraintlayout.widget.ConstraintLayout>

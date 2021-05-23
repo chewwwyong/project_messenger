@@ -1,11 +1,9 @@
 package com.chewwwyong.project_messenger;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -19,8 +17,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
@@ -31,32 +28,55 @@ public class choose_who extends AppCompatActivity {
 
     EditText edt_addFriend;
     Button btn_subcribe;
+    FloatingActionButton fab_return_chat_type;
     String LoginName;
+
     ArrayList<String> addFriend = new ArrayList<>();
+    ArrayList<String> reFriendList = new ArrayList<>();
 
     // listview
-    ArrayList item = new ArrayList();
     ListView ltv_Subscribe;
+    ArrayList<String> item = new ArrayList<>();
     ArrayAdapter adapter;
+
+    // 判斷是不是從聊天室回傳 是的話為1
+    Integer return_choose_who = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_who);
 
-        if(FirebaseAuth.getInstance().getCurrentUser() == null){
+        /*if(FirebaseAuth.getInstance().getCurrentUser() == null){
             startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), SIGN_IN_REQUEST);
-        }
+        }*/
 
         checkIfLogin();//檢查是否已登入
 
         edt_addFriend = findViewById(R.id.edt_addFriend);
         btn_subcribe  = findViewById(R.id.btn_subcribe);
         ltv_Subscribe= findViewById(R.id.ltv_Subscribe);
+        fab_return_chat_type = findViewById(R.id.fab_return_chat_type);
 
-        item = new ArrayList();
-        adapter = new ArrayAdapter(choose_who.this, android.R.layout.simple_list_item_1, item);
-        ltv_Subscribe.setAdapter(adapter);
+        //item = new ArrayList();
+        Intent itget = getIntent();
+        return_choose_who = itget.getIntExtra("return_choose_who", 0);
+        //Toast.makeText(choose_who.this, need_to_new_adapter.toString(), Toast.LENGTH_SHORT).show();
+
+        if (return_choose_who== 1)
+        {
+            //ArrayList<String> reFriendList = new ArrayList<>();
+            //reFriendList = itget.getStringArrayListExtra("reFriendList");
+            reFriendList = itget.getStringArrayListExtra("reFriendList");
+            adapter = new ArrayAdapter(choose_who.this, android.R.layout.simple_list_item_1, reFriendList);
+            ltv_Subscribe.setAdapter(adapter);
+        }
+        else
+        {
+            adapter = new ArrayAdapter(choose_who.this, android.R.layout.simple_list_item_1, item);
+            ltv_Subscribe.setAdapter(adapter);
+        }
+
 
         //Intent it = getIntent();
         //LoginName = it.getStringExtra("LoginName");
@@ -66,7 +86,14 @@ public class choose_who extends AppCompatActivity {
             public void onClick(View view) {
                 addFriend.add(edt_addFriend.getText().toString());
                 // new subscribe
-                item.add(edt_addFriend.getText().toString());
+                if (return_choose_who== 1)
+                {
+                    reFriendList.add(edt_addFriend.getText().toString());
+                }
+                else
+                {
+                    item.add(edt_addFriend.getText().toString());
+                }
                 adapter.notifyDataSetChanged();
                 ltv_Subscribe.smoothScrollToPosition(item.size()-1);
             }
@@ -81,7 +108,32 @@ public class choose_who extends AppCompatActivity {
                 String name = String.valueOf(adapterView.getItemAtPosition(i)); //  抓指定位置的名稱
                 //Toast.makeText(choose_who.this, name, Toast.LENGTH_SHORT).show();
                 it.putExtra("send_to_who", name); // 選擇要私訊的人
-                it.putStringArrayListExtra("FriendList", addFriend);
+                if (return_choose_who== 1)
+                {
+                    it.putStringArrayListExtra("FriendList", reFriendList);
+                }
+                else
+                {
+                    it.putStringArrayListExtra("FriendList", addFriend);
+                }
+                startActivity(it);
+            }
+        });
+
+        fab_return_chat_type.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent it = new Intent(choose_who.this, Chat_Type.class);
+                if (return_choose_who== 1)
+                {
+                    it.putStringArrayListExtra("reFriendList", reFriendList);
+                }
+                else
+                {
+                    it.putStringArrayListExtra("FriendList", addFriend);
+                }
+                it.putExtra("return_choose_who", 1);
+                it.putExtra("return_chat_type", 2);
                 startActivity(it);
             }
         });

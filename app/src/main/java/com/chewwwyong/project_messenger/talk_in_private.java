@@ -1,22 +1,16 @@
 package com.chewwwyong.project_messenger;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import com.chewwwyong.project_messenger.Controller.MainActivity;
-import com.firebase.ui.auth.AuthUI;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -52,9 +46,10 @@ public class talk_in_private extends AppCompatActivity {
     //private String userName = "chewwwyong";
     //private String passWord = "123456";
 
+    TextView tv_who;
     EditText edt_input;
     ListView ltv_message;
-    FloatingActionButton floatingActionButton;
+    FloatingActionButton fab_send, fab_return_choose_who;
     // listview
     ArrayList item = new ArrayList();
     ArrayAdapter adapter;
@@ -62,6 +57,7 @@ public class talk_in_private extends AppCompatActivity {
     String who;
     String me;
     ArrayList<String> addFriend = new ArrayList<>();
+    ArrayList<String> additem = new ArrayList<>();
     MqttAndroidClient mqttAndroidClient;
 
     @Override
@@ -69,22 +65,32 @@ public class talk_in_private extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_talk_in_private);
 
+        // 隱藏標題
+        getSupportActionBar().hide();
+
+        tv_who = findViewById(R.id.tv_who);
         edt_input = findViewById(R.id.edt_input);
         ltv_message = findViewById(R.id.ltv_message);
-        floatingActionButton = findViewById(R.id.floatingActionButton);
+        fab_send = findViewById(R.id.fab_send_private);
+        fab_return_choose_who = findViewById(R.id.fab_return_choose_who);
 
         Intent it = getIntent();
         me = it.getStringExtra("LoginName");
         who = it.getStringExtra("send_to_who");
 
+        // 把好友列表傳過來，等等要再傳回去，這樣才可以記錄下來
+        additem = it.getStringArrayListExtra("FriendList");
+        //Toast.makeText(talk_in_private.this, additem.toString(), Toast.LENGTH_SHORT).show();
+        //
+
         addFriend.add(me); // 要知道誰有私訊我
 
         PUB_TOPIC = who;
+        tv_who.setText(who);
 
-        item = new ArrayList();
+        //item = new ArrayList();
         adapter = new ArrayAdapter(talk_in_private.this, android.R.layout.simple_list_item_1, item);
         ltv_message.setAdapter(adapter);
-
 
         /* 获取Mqtt建连信息clientId, username, password */
         AiotMqttOption aiotMqttOption = new AiotMqttOption().getMqttOption(PRODUCTKEY, DEVICENAME, DEVICESECRET);
@@ -153,13 +159,24 @@ public class talk_in_private extends AppCompatActivity {
         }
 
         /* 通过按键发布消息 */
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+        fab_send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 publishMessage(edt_input.getText().toString());
                 item.add("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_input.getText().toString());
                 adapter.notifyDataSetChanged();
                 ltv_message.smoothScrollToPosition(item.size()-1);
+            }
+        });
+
+        // 返回
+        fab_return_choose_who.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent it = new Intent(talk_in_private.this, choose_who.class);
+                it.putExtra("return_choose_who", 1);
+                it.putStringArrayListExtra("reFriendList", additem);
+                startActivity(it);
             }
         });
     }
@@ -269,35 +286,5 @@ public class talk_in_private extends AppCompatActivity {
 
             return this;
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // 設置要用哪個menu檔做為選單
-        getMenuInflater().inflate(R.menu.menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // 依照id判斷點了哪個項目並做相應事件
-        if (item.getItemId() == R.id.menu_logout) {
-
-            // 按下「登出」要做的事
-            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setCancelable(false)
-                    .setTitle("登出")
-                    .setMessage("確定要登出了嗎？")
-                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> AuthUI.getInstance().signOut(talk_in_private.this)
-                            .addOnCompleteListener(task -> {
-                                Toast.makeText(talk_in_private.this, "已登出囉！", Toast.LENGTH_SHORT).show();
-                                finish();
-                            })).setNegativeButton(android.R.string.no, (dialogInterface, i) -> {
-
-            }).create();
-            builder.show();
-
-        }
-        return true;
     }
 }
