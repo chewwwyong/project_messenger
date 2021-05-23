@@ -33,6 +33,7 @@
         android:id="@+id/btn_subcribe"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:checkable="false"
         android:text="加好友"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
