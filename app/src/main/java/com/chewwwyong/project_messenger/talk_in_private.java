@@ -1,10 +1,13 @@
 package com.chewwwyong.project_messenger;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -12,6 +15,8 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.chewwwyong.project_messenger.Controller.MainActivity;
+import com.firebase.ui.auth.AuthUI;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -152,7 +157,7 @@ public class talk_in_private extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 publishMessage(edt_input.getText().toString());
-                item.add("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_input.getText().toString());
+                item.add("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_input.getText().toString());
                 adapter.notifyDataSetChanged();
                 ltv_message.smoothScrollToPosition(item.size()-1);
             }
@@ -266,4 +271,33 @@ public class talk_in_private extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // 設置要用哪個menu檔做為選單
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // 依照id判斷點了哪個項目並做相應事件
+        if (item.getItemId() == R.id.menu_logout) {
+
+            // 按下「登出」要做的事
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setCancelable(false)
+                    .setTitle("登出")
+                    .setMessage("確定要登出了嗎？")
+                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> AuthUI.getInstance().signOut(talk_in_private.this)
+                            .addOnCompleteListener(task -> {
+                                Toast.makeText(talk_in_private.this, "已登出囉！", Toast.LENGTH_SHORT).show();
+                                finish();
+                            })).setNegativeButton(android.R.string.no, (dialogInterface, i) -> {
+
+            }).create();
+            builder.show();
+
+        }
+        return true;
+    }
 }

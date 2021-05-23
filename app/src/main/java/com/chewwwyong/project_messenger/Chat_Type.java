@@ -29,7 +29,8 @@ public class Chat_Type extends AppCompatActivity implements View.OnClickListener
         switch (view.getId())
         {
             case R.id.btn_single:
-                Intent its = new Intent(Chat_Type.this, who_login.class);
+                //Intent its = new Intent(Chat_Type.this, who_login.class);
+                Intent its = new Intent(Chat_Type.this, choose_who.class);
                 startActivity(its);
                 break;
             case R.id.btn_multiple:

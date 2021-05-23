@@ -1,6 +1,7 @@
 package com.chewwwyong.project_messenger;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,10 +21,13 @@ import android.widget.Toast;
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 
 public class choose_who extends AppCompatActivity {
+
+    int SIGN_IN_REQUEST = 10;
 
     EditText edt_addFriend;
     Button btn_subcribe;
@@ -40,6 +44,12 @@ public class choose_who extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_who);
 
+        if(FirebaseAuth.getInstance().getCurrentUser() == null){
+            startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), SIGN_IN_REQUEST);
+        }
+
+        checkIfLogin();//檢查是否已登入
+
         edt_addFriend = findViewById(R.id.edt_addFriend);
         btn_subcribe  = findViewById(R.id.btn_subcribe);
         ltv_Subscribe= findViewById(R.id.ltv_Subscribe);
@@ -48,8 +58,8 @@ public class choose_who extends AppCompatActivity {
         adapter = new ArrayAdapter(choose_who.this, android.R.layout.simple_list_item_1, item);
         ltv_Subscribe.setAdapter(adapter);
 
-        Intent it = getIntent();
-        LoginName = it.getStringExtra("LoginName");
+        //Intent it = getIntent();
+        //LoginName = it.getStringExtra("LoginName");
 
         btn_subcribe.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,6 +75,7 @@ public class choose_who extends AppCompatActivity {
         ltv_Subscribe.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                LoginName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
                 Intent it = new Intent(choose_who.this,talk_in_private.class);
                 it.putExtra("LoginName", LoginName);
                 String name = String.valueOf(adapterView.getItemAtPosition(i)); //  抓指定位置的名稱
@@ -76,14 +87,44 @@ public class choose_who extends AppCompatActivity {
         });
     }
 
-    /*@Override
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == SIGN_IN_REQUEST){
+            if(resultCode == RESULT_OK){
+                Toast.makeText(this, "登入成功", Toast.LENGTH_SHORT).show();
+                displayChatMsg();
+            }
+            else{
+                Toast.makeText(this, "登入失敗，請稍後再試", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        }
+    }
+
+    private void displayChatMsg() {
+    }
+
+    private void checkIfLogin() {
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            startActivityForResult(AuthUI.getInstance().createSignInIntentBuilder().build(), SIGN_IN_REQUEST);
+
+        } else {
+            //toast.setText(getResources().getText(R.string.welcome) + FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+            //toast.show();
+            Toast.makeText(choose_who.this, getResources().getText(R.string.welcome) + FirebaseAuth.getInstance().getCurrentUser().getDisplayName(), Toast.LENGTH_SHORT).show();
+            displayChatMsg();
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // 設置要用哪個menu檔做為選單
         getMenuInflater().inflate(R.menu.menu, menu);
         return true;
-    }*/
+    }
 
-    /*@Override
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // 依照id判斷點了哪個項目並做相應事件
         if (item.getItemId() == R.id.menu_logout) {
@@ -92,28 +133,17 @@ public class choose_who extends AppCompatActivity {
             final AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setCancelable(false)
                     .setTitle("登出")
-                    .setMessage("確定邀登出了嗎？")
-                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            AuthUI.getInstance().signOut(choose_who.this)
-                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                        @Override
-                                        public void onComplete(@NonNull Task<Void> task) {
-                                            Toast.makeText(choose_who.this, "已登出囉！", Toast.LENGTH_SHORT).show();
-                                            finish();
-                                        }
-                                    });
-                        }
-                    }).setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
+                    .setMessage("確定要登出了嗎？")
+                    .setPositiveButton(android.R.string.ok, (dialogInterface, i) -> AuthUI.getInstance().signOut(choose_who.this)
+                            .addOnCompleteListener(task -> {
+                                Toast.makeText(choose_who.this, "已登出囉！", Toast.LENGTH_SHORT).show();
+                                finish();
+                            })).setNegativeButton(android.R.string.no, (dialogInterface, i) -> {
 
-                }
             }).create();
             builder.show();
 
         }
         return true;
-    }*/
+    }
 }
