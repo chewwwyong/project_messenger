@@ -1,8 +1,17 @@
 package com.chewwwyong.project_messenger;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.chewwwyong.project_messenger.Controller.MainActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -24,6 +34,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -60,6 +71,11 @@ public class talk_in_private extends AppCompatActivity {
     ArrayList<String> additem = new ArrayList<>();
     MqttAndroidClient mqttAndroidClient;
 
+    NotificationManager manager;
+    Bitmap largeIcon;
+    PendingIntent pendingIntent;
+    Notification notification;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +83,27 @@ public class talk_in_private extends AppCompatActivity {
 
         // 隱藏標題
         getSupportActionBar().hide();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Create channel to show notifications.
+            String channelId  = "default_notification_channel_id";
+            String channelName = "default_notification_channel_name";
+            NotificationManager notificationManager =
+                    getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(new NotificationChannel(channelId,
+                    channelName, NotificationManager.IMPORTANCE_LOW));
+        }
+
+        // 取得NotificationManager物件
+        manager = (NotificationManager)
+                getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // 建立大圖示需要的Bitmap物件
+        largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.tongshenduan_hotpot);
+
+        // 點擊時要啟動的PendingIntent，當中包含一個Intent設置要開啟的Activity
+        pendingIntent =
+                PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
         tv_who = findViewById(R.id.tv_who);
         edt_input = findViewById(R.id.edt_input);
@@ -126,6 +163,23 @@ public class talk_in_private extends AppCompatActivity {
                 item.add(who + " : " + new String(message.getPayload()));
                 adapter.notifyDataSetChanged();
                 ltv_message.smoothScrollToPosition(item.size()-1);
+
+                // 建立通知物件，設定小圖示、大圖示、內容標題、內容訊息、時間
+                notification = new NotificationCompat.Builder(talk_in_private.this)
+                        .setSmallIcon(R.drawable.tongshenduan_hotpot)
+                        .setLargeIcon(largeIcon)
+                        .setContentTitle("標題")
+                        .setContentText(Arrays.toString(message.getPayload()))
+                        .setWhen(System.currentTimeMillis())
+                        // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(Arrays.toString(message.getPayload())))
+                        .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
+                        .setContentIntent(pendingIntent)  // 設置Intent
+                        .addAction(R.drawable.tongshenduan_hotpot, "查看", pendingIntent)  // 增加「查看」
+                        .setAutoCancel(true)    // 點擊後讓Notification消失
+                        .build();
+                // 使用0為編號發出通知
+                manager.notify(0, notification);
             }
 
             @Override

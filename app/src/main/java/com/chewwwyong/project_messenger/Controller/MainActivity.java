@@ -2,10 +2,15 @@ package com.chewwwyong.project_messenger.Controller;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,6 +18,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,6 +40,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -41,20 +48,27 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.chewwwyong.project_messenger.BuildConfig;
 import com.chewwwyong.project_messenger.ChatMessage;
+import com.chewwwyong.project_messenger.MyFirebaseService;
 import com.chewwwyong.project_messenger.R;
 import com.chewwwyong.project_messenger.Util.BitmapUtil;
 import com.chewwwyong.project_messenger.Util.PermissionTool;
 import com.chewwwyong.project_messenger.Util.Utils;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.annotations.Nullable;
+import com.google.firebase.iid.FirebaseInstanceIdReceiver;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
@@ -78,6 +92,13 @@ public class MainActivity extends AppCompatActivity {
 
     EditText edt_getText;
     ListView ltv_Message_box;
+
+    NotificationManager manager;
+    Bitmap largeIcon;
+    PendingIntent pendingIntent;
+    Notification notification;
+
+
 
     // fireBase 相關變數
     // 取得結果用的 Request Code
@@ -114,13 +135,35 @@ public class MainActivity extends AppCompatActivity {
     SharedPreferences sharedPreferences;
 
     private Context context;
-
     // fireBase 相關變數
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        // 取得NotificationManager物件
+        manager = (NotificationManager)
+                getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // 建立大圖示需要的Bitmap物件
+        largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.tongshenduan_hotpot);
+
+        // 點擊時要啟動的PendingIntent，當中包含一個Intent設置要開啟的Activity
+        pendingIntent =
+                PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Create channel to show notifications.
+            String channelId  = "default_notification_channel_id";
+            String channelName = "default_notification_channel_name";
+            NotificationManager notificationManager =
+                    getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(new NotificationChannel(channelId,
+                    channelName, NotificationManager.IMPORTANCE_LOW));
+        }
 
         edt_getText = findViewById(R.id.edtInput);
         ltv_Message_box = findViewById(R.id.ltv_Message_box);
@@ -160,6 +203,28 @@ public class MainActivity extends AppCompatActivity {
                 //Toast.makeText(MainActivity.this, edt_getText.getText().toString(), Toast.LENGTH_SHORT).show();
             }
         });
+
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+                            Log.w("MainActivity", "Fetching FCM registration token failed", task.getException());
+                            return;
+                        }
+
+                        // Get new FCM registration token
+                        String token = task.getResult();
+
+                        // Log and toast
+
+                        //String msg = getString(R.string.msg_token_fmt, token);
+                        Log.d("MainActivity", token);
+                        //Toast.makeText(MainActivity.this, token, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+
     }
 
     @Override
@@ -361,14 +426,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-//        adapter.startListening();//啟動監聽，訊息可即時更新
+        //adapter.startListening();//啟動監聽，訊息可即時更新
 
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-//        adapter.stopListening();
+        //adapter.stopListening();
+
     }
 
     //秀出訊息
@@ -376,7 +442,7 @@ public class MainActivity extends AppCompatActivity {
 
         try {
             adapter = new FirebaseRecyclerAdapter<ChatMessage, ChatMessageHolder>
-                    (ChatMessage.class, R.layout.message, ChatMessageHolder.class, reference.limitToLast(10)) {
+                    (ChatMessage.class, R.layout.message, ChatMessageHolder.class, reference.limitToLast(20)) {
 
                 public ChatMessageHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                     View view = LayoutInflater.from(context).inflate(R.layout.message, parent, false);
@@ -692,6 +758,7 @@ public class MainActivity extends AppCompatActivity {
                         if (TextUtils.isEmpty(filePath)) {//如果有圖片訊息就秀圖
                             txvMsg_User.setVisibility(View.VISIBLE);
                             txvMsg_User.setText(chatMsg);
+
                             imgMsg_user.setVisibility(View.GONE);
 
                             txv_time_imgUSer.setVisibility(View.GONE);
