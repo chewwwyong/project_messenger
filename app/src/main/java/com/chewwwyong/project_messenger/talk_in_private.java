@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -83,6 +84,9 @@ public class talk_in_private extends AppCompatActivity {
 
         // 隱藏標題
         getSupportActionBar().hide();
+
+        // 禁止截圖
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Create channel to show notifications.
@@ -231,6 +235,7 @@ public class talk_in_private extends AppCompatActivity {
                 it.putExtra("return_choose_who", 1);
                 it.putStringArrayListExtra("reFriendList", additem);
                 startActivity(it);
+                finish();
             }
         });
     }

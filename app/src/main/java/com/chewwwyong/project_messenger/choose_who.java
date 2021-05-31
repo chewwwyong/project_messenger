@@ -124,6 +124,7 @@ public class choose_who extends AppCompatActivity {
                     it.putStringArrayListExtra("FriendList", addFriend);
                 }
                 startActivity(it);
+                finish();
             }
         });
 
@@ -143,6 +144,7 @@ public class choose_who extends AppCompatActivity {
                 }
                 it.putExtra("return_chat_type", 2);
                 startActivity(it);
+                finish();
             }
         });
     }

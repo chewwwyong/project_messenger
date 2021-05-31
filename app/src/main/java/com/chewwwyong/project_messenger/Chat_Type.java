@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.chewwwyong.project_messenger.Controller.MainActivity;
 
@@ -31,7 +32,6 @@ public class Chat_Type extends AppCompatActivity implements View.OnClickListener
         btn_single.setOnClickListener(this);
         btn_multiple.setOnClickListener(this);
 
-
         Intent it = getIntent();
         return_chat_type = it.getIntExtra("return_chat_type", 0);
         return_choose_who = it.getIntExtra("return_choose_who", 0);
@@ -55,10 +55,12 @@ public class Chat_Type extends AppCompatActivity implements View.OnClickListener
                 its.putExtra("return_choose_who", 1);
                 its.putStringArrayListExtra("reFriendList", additem);
                 startActivity(its);
+                finish();
                 break;
             case R.id.btn_multiple:
                 Intent itm = new Intent(Chat_Type.this, MainActivity.class);
                 startActivity(itm);
+                finish();
                 break;
         }
     }
