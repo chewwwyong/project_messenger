@@ -22,8 +22,7 @@
         android:theme="@style/Theme.Project_messenger"
         android:requestLegacyExternalStorage="true" >
 
-    <activity android:name=".who_login" />
-    <activity android:name=".Controller.CropImageActivity" />
+        <activity android:name=".Controller.CropImageActivity" />
     <activity android:name=".talk_in_private" />
     <activity android:name=".choose_who" />
     <activity android:name=".Chat_Type">
