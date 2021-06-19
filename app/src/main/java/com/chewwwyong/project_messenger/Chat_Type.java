@@ -45,6 +45,12 @@ public class Chat_Type extends AppCompatActivity implements View.OnClickListener
         }
     }
 
+    /*@Override
+    protected void onStop() {
+        super.onStop();
+        finish();
+    }*/
+
     @Override
     public void onClick(View view) {
         switch (view.getId())

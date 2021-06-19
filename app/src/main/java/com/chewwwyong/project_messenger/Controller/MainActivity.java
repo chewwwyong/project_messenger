@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -53,6 +55,7 @@ import com.chewwwyong.project_messenger.R;
 import com.chewwwyong.project_messenger.Util.BitmapUtil;
 import com.chewwwyong.project_messenger.Util.PermissionTool;
 import com.chewwwyong.project_messenger.Util.Utils;
+import com.chewwwyong.project_messenger.talk_in_private;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -455,7 +458,9 @@ public class MainActivity extends AppCompatActivity {
                 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
-                    viewHolder.setValues(model);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        viewHolder.setValues(model);
+                    }
                     viewHolder.img_avatar_other.setOnClickListener(v -> showInfo(position));
                     viewHolder.img_avatar_user.setOnClickListener(v -> showInfo(position));
 
@@ -690,6 +695,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.O)
         public void setValues(final ChatMessage chatMessage) {
             if (chatMessage != null) {
 
@@ -743,6 +749,34 @@ public class MainActivity extends AppCompatActivity {
 
                         txvUser_Other.setText(chatMessage.getUserName());
 
+
+                        // 取得NotificationManager物件
+                        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                        Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
+                        bigPictureStyle.setBigContentTitle("Photo");
+                        bigPictureStyle.setSummaryText("SummaryText");
+                        // 建立大圖示需要的Bitmap物件
+                        Bitmap bitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.b123)).getBitmap();
+                        bigPictureStyle.bigPicture(bitmap);
+
+                        NotificationChannel notificationChannel = new NotificationChannel("0", "notice", NotificationManager.IMPORTANCE_HIGH);
+                        Notification.Builder builder = new Notification.Builder(MainActivity.this, "0")
+                                .setSmallIcon(R.drawable.b123)
+                                .setColor(Color.BLUE)
+                                .setContentTitle(chatMessage.getUserName()) //顯示別人名字
+                                .setContentText(chatMsg)
+                                .setWhen(System.currentTimeMillis())
+                                // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
+                                .setChannelId("0")
+                                .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
+                                .setContentIntent(pendingIntent)  // 設置Intent
+                                .addAction(R.drawable.b123, "查看", pendingIntent)  // 增加「查看」
+                                .setAutoCancel(true)    // 點擊後讓Notification消失
+                                .setStyle(bigPictureStyle);
+                        notificationManager.createNotificationChannel(notificationChannel);
+                        notificationManager.notify(0, builder.build());
+
+
                     } else {//自己
                         userLayout.setVisibility(View.VISIBLE);
                         otherUserLayout.setVisibility(View.GONE);
@@ -782,6 +816,33 @@ public class MainActivity extends AppCompatActivity {
 
                             imgMsg_user.setOnClickListener(v -> showPhoto(chatMessage));
                         }
+
+
+                        // 取得NotificationManager物件
+                        /*NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                        Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
+                        bigPictureStyle.setBigContentTitle("Photo");
+                        bigPictureStyle.setSummaryText("SummaryText");
+                        // 建立大圖示需要的Bitmap物件
+                        Bitmap bitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.b123)).getBitmap();
+                        bigPictureStyle.bigPicture(bitmap);
+
+                        NotificationChannel notificationChannel = new NotificationChannel("0", "notice", NotificationManager.IMPORTANCE_HIGH);
+                        Notification.Builder builder = new Notification.Builder(MainActivity.this, "0")
+                                .setSmallIcon(R.drawable.b123)
+                                .setColor(Color.BLUE)
+                                .setContentTitle(chatMessage.getUserName()) //顯示別人名字
+                                .setContentText(chatMsg)
+                                .setWhen(System.currentTimeMillis())
+                                // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
+                                .setChannelId("0")
+                                .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
+                                .setContentIntent(pendingIntent)  // 設置Intent
+                                .addAction(R.drawable.b123, "查看", pendingIntent)  // 增加「查看」
+                                .setAutoCancel(true)    // 點擊後讓Notification消失
+                                .setStyle(bigPictureStyle);
+                        notificationManager.createNotificationChannel(notificationChannel);
+                        notificationManager.notify(0, builder.build());*/
 
                     }
                 }

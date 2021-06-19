@@ -1,5 +1,6 @@
 package com.chewwwyong.project_messenger;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
@@ -11,8 +12,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.os.IResultReceiver;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -72,6 +76,7 @@ public class talk_in_private extends AppCompatActivity {
     ArrayList<String> additem = new ArrayList<>();
     MqttAndroidClient mqttAndroidClient;
 
+    // Notification
     NotificationManager manager;
     Bitmap largeIcon;
     PendingIntent pendingIntent;
@@ -88,22 +93,21 @@ public class talk_in_private extends AppCompatActivity {
         // 禁止截圖
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Create channel to show notifications.
             String channelId  = "default_notification_channel_id";
             String channelName = "default_notification_channel_name";
-            NotificationManager notificationManager =
-                    getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(new NotificationChannel(channelId,
-                    channelName, NotificationManager.IMPORTANCE_LOW));
-        }
+            //NotificationManager notificationManager =
+                    //getSystemService(NotificationManager.class);
+            //notificationManager.createNotificationChannel(new NotificationChannel(channelId,
+                    //channelName, NotificationManager.IMPORTANCE_LOW));
+        }*/
 
         // 取得NotificationManager物件
-        manager = (NotificationManager)
-                getSystemService(Context.NOTIFICATION_SERVICE);
+        //manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         // 建立大圖示需要的Bitmap物件
-        largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.tongshenduan_hotpot);
+        //largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.tongshenduan_hotpot);
 
         // 點擊時要啟動的PendingIntent，當中包含一個Intent設置要開啟的Activity
         pendingIntent =
@@ -158,6 +162,7 @@ public class talk_in_private extends AppCompatActivity {
                 Log.i(TAG, "connection lost");
             }
 
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 Log.i(TAG, "topic: " + topic + ", msg: " + new String(message.getPayload()));
@@ -169,7 +174,7 @@ public class talk_in_private extends AppCompatActivity {
                 ltv_message.smoothScrollToPosition(item.size()-1);
 
                 // 建立通知物件，設定小圖示、大圖示、內容標題、內容訊息、時間
-                notification = new NotificationCompat.Builder(talk_in_private.this)
+                /*notification = new NotificationCompat.Builder(talk_in_private.this)
                         .setSmallIcon(R.drawable.tongshenduan_hotpot)
                         .setLargeIcon(largeIcon)
                         .setContentTitle("標題")
@@ -183,7 +188,34 @@ public class talk_in_private extends AppCompatActivity {
                         .setAutoCancel(true)    // 點擊後讓Notification消失
                         .build();
                 // 使用0為編號發出通知
-                manager.notify(0, notification);
+                manager.notify(0, notification);*/
+
+                // 我也不知道什麼問題== 然後不會像是我們上課做的那樣會跳出訊息在螢幕上方
+                // 取得NotificationManager物件
+                NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
+                bigPictureStyle.setBigContentTitle("Photo");
+                bigPictureStyle.setSummaryText("SummaryText");
+                // 建立大圖示需要的Bitmap物件
+                Bitmap bitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.b123)).getBitmap();
+                bigPictureStyle.bigPicture(bitmap);
+
+                NotificationChannel notificationChannel = new NotificationChannel("0", "notice", NotificationManager.IMPORTANCE_HIGH);
+                Notification.Builder builder = new Notification.Builder(talk_in_private.this, "0")
+                        .setSmallIcon(R.drawable.b123)
+                        .setColor(Color.BLUE)
+                        .setContentTitle(who)
+                        .setContentText(new String(message.getPayload()))
+                        .setWhen(System.currentTimeMillis())
+                        // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
+                        .setChannelId("0")
+                        .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
+                        .setContentIntent(pendingIntent)  // 設置Intent
+                        .addAction(R.drawable.b123, "查看", pendingIntent)  // 增加「查看」
+                        .setAutoCancel(true)    // 點擊後讓Notification消失
+                        .setStyle(bigPictureStyle);
+                notificationManager.createNotificationChannel(notificationChannel);
+                notificationManager.notify(0, builder.build());
             }
 
             @Override
@@ -239,6 +271,12 @@ public class talk_in_private extends AppCompatActivity {
             }
         });
     }
+
+    /*@Override
+    protected void onStop() {
+        super.onStop();
+        finish();
+    }*/
 
     /**
      * 订阅特定的主题
