@@ -84,24 +84,33 @@ public class choose_who extends AppCompatActivity {
         btn_subcribe.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addFriend.add(edt_addFriend.getText().toString());
-                // new subscribe
-                if (return_choose_who== 1)
+                if (edt_addFriend.getText().toString().trim().length() > 0)    //判斷是否輸入名字 if有
                 {
-                    reFriendList.add(edt_addFriend.getText().toString());
+                    addFriend.add(edt_addFriend.getText().toString());
+                    // new subscribe
+                    if (return_choose_who== 1)
+                    {
+                        reFriendList.add(edt_addFriend.getText().toString());
+                    }
+                    else
+                    {
+                        item.add(edt_addFriend.getText().toString());
+                    }
+                    adapter.notifyDataSetChanged();
+                    if (return_choose_who== 1)
+                    {
+                        ltv_Subscribe.smoothScrollToPosition(reFriendList.size()-1);
+                    }
+                    else
+                    {
+                        ltv_Subscribe.smoothScrollToPosition(item.size()-1);
+                    }
+                    edt_addFriend.setText("");
                 }
-                else
+                else    //判斷是否輸入名字 else沒有
                 {
-                    item.add(edt_addFriend.getText().toString());
-                }
-                adapter.notifyDataSetChanged();
-                if (return_choose_who== 1)
-                {
-                    ltv_Subscribe.smoothScrollToPosition(reFriendList.size()-1);
-                }
-                else
-                {
-                    ltv_Subscribe.smoothScrollToPosition(item.size()-1);
+                    edt_addFriend.setText("");
+                    Toast.makeText(choose_who.this, "請輸入名字", Toast.LENGTH_SHORT).show();
                 }
             }
         });

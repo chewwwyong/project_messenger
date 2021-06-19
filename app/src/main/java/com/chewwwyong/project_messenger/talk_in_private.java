@@ -24,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.chewwwyong.project_messenger.Controller.MainActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -110,8 +111,7 @@ public class talk_in_private extends AppCompatActivity {
         //largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.tongshenduan_hotpot);
 
         // 點擊時要啟動的PendingIntent，當中包含一個Intent設置要開啟的Activity
-        pendingIntent =
-                PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+        //pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
         tv_who = findViewById(R.id.tv_who);
         edt_input = findViewById(R.id.edt_input);
@@ -192,7 +192,7 @@ public class talk_in_private extends AppCompatActivity {
 
                 // 我也不知道什麼問題== 然後不會像是我們上課做的那樣會跳出訊息在螢幕上方
                 // 取得NotificationManager物件
-                NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                /*NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                 Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
                 bigPictureStyle.setBigContentTitle("Photo");
                 bigPictureStyle.setSummaryText("SummaryText");
@@ -215,7 +215,7 @@ public class talk_in_private extends AppCompatActivity {
                         .setAutoCancel(true)    // 點擊後讓Notification消失
                         .setStyle(bigPictureStyle);
                 notificationManager.createNotificationChannel(notificationChannel);
-                notificationManager.notify(0, builder.build());
+                notificationManager.notify(0, builder.build());*/
             }
 
             @Override
@@ -252,10 +252,19 @@ public class talk_in_private extends AppCompatActivity {
         fab_send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                publishMessage(edt_input.getText().toString());
-                item.add("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_input.getText().toString());
-                adapter.notifyDataSetChanged();
-                ltv_message.smoothScrollToPosition(item.size()-1);
+                if(edt_input.getText().toString().trim().length() > 0) //判斷有沒有輸入文字 if有
+                {
+                    publishMessage(edt_input.getText().toString());
+                    item.add("\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t" + edt_input.getText().toString());
+                    adapter.notifyDataSetChanged();
+                    ltv_message.smoothScrollToPosition(item.size()-1);
+                    edt_input.setText("");
+                }
+                else    //判斷有沒有輸入文字 else沒有
+                {
+                    edt_input.setText("");
+                    //Toast.makeText(talk_in_private.this, "請輸入文字", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

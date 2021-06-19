@@ -147,18 +147,16 @@ public class MainActivity extends AppCompatActivity {
 
 
         // 取得NotificationManager物件
-        manager = (NotificationManager)
-                getSystemService(Context.NOTIFICATION_SERVICE);
+        //manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         // 建立大圖示需要的Bitmap物件
-        largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.tongshenduan_hotpot);
+        //largeIcon = BitmapFactory.decodeResource(getResources(), R.drawable.tongshenduan_hotpot);
 
         // 點擊時要啟動的PendingIntent，當中包含一個Intent設置要開啟的Activity
-        pendingIntent =
-                PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+        //pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Create channel to show notifications.
             String channelId  = "default_notification_channel_id";
             String channelName = "default_notification_channel_name";
@@ -166,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
                     getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(new NotificationChannel(channelId,
                     channelName, NotificationManager.IMPORTANCE_LOW));
-        }
+        }*/
 
         edt_getText = findViewById(R.id.edtInput);
         ltv_Message_box = findViewById(R.id.ltv_Message_box);
@@ -267,10 +265,53 @@ public class MainActivity extends AppCompatActivity {
         fabAlbum.setOnClickListener(v -> fabAlbum(v, ALBUM_REQUEST));
 
         reference.addChildEventListener(new ChildEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override//收到新訊息時自動往下捲
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (adapter != null)
                     recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+
+                /*if (adapter != null && adapter.getItemCount() > 0) //這邊補後面的判斷式是因為他會說下面的程式碼就不能執行 因為還沒run過
+                {
+                    //recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+
+                    //判斷是不是最後的訊息再來看是不是本人傳的 是就不顯示 不是就移動到最下面
+                    if (!adapter.getItem(adapter.getItemCount() - 1).getUuid().equals(uuid)) //使用裝置id讓判斷訊息來自使用者或對方
+                    {
+                        Toast.makeText(MainActivity.this, adapter.getItem(adapter.getItemCount() - 1).getMessage(), Toast.LENGTH_SHORT).show();
+                        // 取得NotificationManager物件
+                        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                        Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
+                        bigPictureStyle.setBigContentTitle("Photo");
+                        bigPictureStyle.setSummaryText("SummaryText");
+                        // 建立大圖示需要的Bitmap物件
+                        Bitmap bitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.b123)).getBitmap();
+                        bigPictureStyle.bigPicture(bitmap);
+
+                        NotificationChannel notificationChannel = new NotificationChannel("0", "notice", NotificationManager.IMPORTANCE_HIGH);
+                        Notification.Builder builder = new Notification.Builder(MainActivity.this, "0")
+                                .setSmallIcon(R.drawable.b123)
+                                .setColor(Color.BLUE)
+                                .setContentTitle(adapter.getItem(adapter.getItemCount() - 1).getUserName()) //顯示別人名字
+                                .setContentText(adapter.getItem(adapter.getItemCount() - 1).getMessage())
+                                .setWhen(System.currentTimeMillis())
+                                // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
+                                .setChannelId("0")
+                                .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
+                                .setContentIntent(pendingIntent)  // 設置Intent
+                                .addAction(R.drawable.b123, "查看", pendingIntent)  // 增加「查看」
+                                .setAutoCancel(true)    // 點擊後讓Notification消失
+                                .setStyle(bigPictureStyle);
+                        notificationManager.createNotificationChannel(notificationChannel);
+                        notificationManager.notify(0, builder.build());
+
+                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+
+                    } else {
+                        Toast.makeText(MainActivity.this, adapter.getItem(adapter.getItemCount() - 1).getMessage(), Toast.LENGTH_SHORT).show();
+                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                    }
+                }*/
             }
 
             @Override
@@ -288,6 +329,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
+
         });
     }
 
@@ -458,9 +500,9 @@ public class MainActivity extends AppCompatActivity {
                 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                 @Override
                 protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        viewHolder.setValues(model);
-                    }
+
+                    viewHolder.setValues(model);
+
                     viewHolder.img_avatar_other.setOnClickListener(v -> showInfo(position));
                     viewHolder.img_avatar_user.setOnClickListener(v -> showInfo(position));
 
@@ -472,11 +514,9 @@ public class MainActivity extends AppCompatActivity {
             recyclerView.setAdapter(adapter);
             recyclerView.scrollToPosition(adapter.getItemCount() - 1);
 
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -695,7 +735,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.O)
         public void setValues(final ChatMessage chatMessage) {
             if (chatMessage != null) {
 
@@ -749,34 +788,6 @@ public class MainActivity extends AppCompatActivity {
 
                         txvUser_Other.setText(chatMessage.getUserName());
 
-
-                        // 取得NotificationManager物件
-                        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                        Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
-                        bigPictureStyle.setBigContentTitle("Photo");
-                        bigPictureStyle.setSummaryText("SummaryText");
-                        // 建立大圖示需要的Bitmap物件
-                        Bitmap bitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.b123)).getBitmap();
-                        bigPictureStyle.bigPicture(bitmap);
-
-                        NotificationChannel notificationChannel = new NotificationChannel("0", "notice", NotificationManager.IMPORTANCE_HIGH);
-                        Notification.Builder builder = new Notification.Builder(MainActivity.this, "0")
-                                .setSmallIcon(R.drawable.b123)
-                                .setColor(Color.BLUE)
-                                .setContentTitle(chatMessage.getUserName()) //顯示別人名字
-                                .setContentText(chatMsg)
-                                .setWhen(System.currentTimeMillis())
-                                // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
-                                .setChannelId("0")
-                                .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
-                                .setContentIntent(pendingIntent)  // 設置Intent
-                                .addAction(R.drawable.b123, "查看", pendingIntent)  // 增加「查看」
-                                .setAutoCancel(true)    // 點擊後讓Notification消失
-                                .setStyle(bigPictureStyle);
-                        notificationManager.createNotificationChannel(notificationChannel);
-                        notificationManager.notify(0, builder.build());
-
-
                     } else {//自己
                         userLayout.setVisibility(View.VISIBLE);
                         otherUserLayout.setVisibility(View.GONE);
@@ -816,34 +827,6 @@ public class MainActivity extends AppCompatActivity {
 
                             imgMsg_user.setOnClickListener(v -> showPhoto(chatMessage));
                         }
-
-
-                        // 取得NotificationManager物件
-                        /*NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                        Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
-                        bigPictureStyle.setBigContentTitle("Photo");
-                        bigPictureStyle.setSummaryText("SummaryText");
-                        // 建立大圖示需要的Bitmap物件
-                        Bitmap bitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.b123)).getBitmap();
-                        bigPictureStyle.bigPicture(bitmap);
-
-                        NotificationChannel notificationChannel = new NotificationChannel("0", "notice", NotificationManager.IMPORTANCE_HIGH);
-                        Notification.Builder builder = new Notification.Builder(MainActivity.this, "0")
-                                .setSmallIcon(R.drawable.b123)
-                                .setColor(Color.BLUE)
-                                .setContentTitle(chatMessage.getUserName()) //顯示別人名字
-                                .setContentText(chatMsg)
-                                .setWhen(System.currentTimeMillis())
-                                // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
-                                .setChannelId("0")
-                                .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
-                                .setContentIntent(pendingIntent)  // 設置Intent
-                                .addAction(R.drawable.b123, "查看", pendingIntent)  // 增加「查看」
-                                .setAutoCancel(true)    // 點擊後讓Notification消失
-                                .setStyle(bigPictureStyle);
-                        notificationManager.createNotificationChannel(notificationChannel);
-                        notificationManager.notify(0, builder.build());*/
-
                     }
                 }
             }
