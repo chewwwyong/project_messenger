@@ -460,7 +460,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // 之後更新內容
+        // 之後有更新內容就判斷是不是別人傳訊息 就通知
         reference.addValueEventListener(new ValueEventListener() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
