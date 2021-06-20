@@ -503,7 +503,7 @@ public class MainActivity extends AppCompatActivity {
                         recyclerView.scrollToPosition(adapter.getItemCount() - 1);
 
                     } else {
-                        Toast.makeText(MainActivity.this, adapter.getItem(adapter.getItemCount() - 1).getMessage(), Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(MainActivity.this, adapter.getItem(adapter.getItemCount() - 1).getMessage(), Toast.LENGTH_SHORT).show();
                         recyclerView.scrollToPosition(adapter.getItemCount() - 1);
                     }
                 }
