@@ -68,6 +68,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.annotations.Nullable;
 import com.google.firebase.iid.FirebaseInstanceIdReceiver;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -118,6 +119,9 @@ public class MainActivity extends AppCompatActivity {
     private Toast toast;
 
     private FirebaseRecyclerAdapter<ChatMessage, ChatMessageHolder> adapter;
+
+    private FirebaseRecyclerAdapter<ChatMessage, ChatMessageHolder> testadapter;
+
     private RecyclerView recyclerView;
     private LinearLayoutManager linearLayoutManager;
 
@@ -224,8 +228,6 @@ public class MainActivity extends AppCompatActivity {
                         //Toast.makeText(MainActivity.this, token, Toast.LENGTH_SHORT).show();
                     }
                 });
-
-
     }
 
     @Override
@@ -270,48 +272,6 @@ public class MainActivity extends AppCompatActivity {
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
                 if (adapter != null)
                     recyclerView.scrollToPosition(adapter.getItemCount() - 1);
-
-                /*if (adapter != null && adapter.getItemCount() > 0) //這邊補後面的判斷式是因為他會說下面的程式碼就不能執行 因為還沒run過
-                {
-                    //recyclerView.scrollToPosition(adapter.getItemCount() - 1);
-
-                    //判斷是不是最後的訊息再來看是不是本人傳的 是就不顯示 不是就移動到最下面
-                    if (!adapter.getItem(adapter.getItemCount() - 1).getUuid().equals(uuid)) //使用裝置id讓判斷訊息來自使用者或對方
-                    {
-                        Toast.makeText(MainActivity.this, adapter.getItem(adapter.getItemCount() - 1).getMessage(), Toast.LENGTH_SHORT).show();
-                        // 取得NotificationManager物件
-                        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                        Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
-                        bigPictureStyle.setBigContentTitle("Photo");
-                        bigPictureStyle.setSummaryText("SummaryText");
-                        // 建立大圖示需要的Bitmap物件
-                        Bitmap bitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.b123)).getBitmap();
-                        bigPictureStyle.bigPicture(bitmap);
-
-                        NotificationChannel notificationChannel = new NotificationChannel("0", "notice", NotificationManager.IMPORTANCE_HIGH);
-                        Notification.Builder builder = new Notification.Builder(MainActivity.this, "0")
-                                .setSmallIcon(R.drawable.b123)
-                                .setColor(Color.BLUE)
-                                .setContentTitle(adapter.getItem(adapter.getItemCount() - 1).getUserName()) //顯示別人名字
-                                .setContentText(adapter.getItem(adapter.getItemCount() - 1).getMessage())
-                                .setWhen(System.currentTimeMillis())
-                                // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
-                                .setChannelId("0")
-                                .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
-                                .setContentIntent(pendingIntent)  // 設置Intent
-                                .addAction(R.drawable.b123, "查看", pendingIntent)  // 增加「查看」
-                                .setAutoCancel(true)    // 點擊後讓Notification消失
-                                .setStyle(bigPictureStyle);
-                        notificationManager.createNotificationChannel(notificationChannel);
-                        notificationManager.notify(0, builder.build());
-
-                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
-
-                    } else {
-                        Toast.makeText(MainActivity.this, adapter.getItem(adapter.getItemCount() - 1).getMessage(), Toast.LENGTH_SHORT).show();
-                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
-                    }
-                }*/
             }
 
             @Override
@@ -329,7 +289,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
             }
-
         });
     }
 
@@ -350,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
             toast.setText(getResources().getText(R.string.welcome) + FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
             toast.show();
             displayChatMsg();
+
         }
     }
 
@@ -464,6 +424,97 @@ public class MainActivity extends AppCompatActivity {
         edt_getText.setText("");
         Set<String> saveKeyList = new HashSet<>(keyList);
         sharedPreferences.edit().putStringSet("keyList", saveKeyList).apply();
+
+        // 送出訊息後要先重置介面 才能讀取到最新的聊天紀錄
+        //displayChatMsg();
+        try {
+            adapter = new FirebaseRecyclerAdapter<ChatMessage, ChatMessageHolder>
+                    (ChatMessage.class, R.layout.message, ChatMessageHolder.class, reference.limitToLast(20)) {
+
+                public ChatMessageHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                    View view = LayoutInflater.from(context).inflate(R.layout.message, parent, false);
+                    ChatMessageHolder holder = new ChatMessageHolder(view);
+
+                    return holder;
+                }
+
+
+                @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+                @Override
+                protected void populateViewHolder(ChatMessageHolder viewHolder, ChatMessage model, final int position) {
+
+                    viewHolder.setValues(model);
+
+                    viewHolder.img_avatar_other.setOnClickListener(v -> showInfo(position));
+                    viewHolder.img_avatar_user.setOnClickListener(v -> showInfo(position));
+
+                }
+            };
+
+            //這邊註解是因為會一直刷新介面 很醜
+            //recyclerView.setLayoutManager(linearLayoutManager);
+            //recyclerView.setHasFixedSize(true);
+            //recyclerView.setAdapter(adapter);
+            //recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // 之後更新內容
+        reference.addValueEventListener(new ValueEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                if (adapter != null && adapter.getItemCount() > 0) //這邊補後面的判斷式是因為他會說下面的程式碼就不能執行 因為還沒run過
+                {
+                    //recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+
+                    //判斷是不是最後的訊息再來看是不是本人傳的 是就不顯示 不是就移動到最下面
+                    if (!adapter.getItem(adapter.getItemCount() - 1).getUuid().equals(uuid)) //使用裝置id讓判斷訊息來自使用者或對方
+                    {
+                        Toast.makeText(MainActivity.this, adapter.getItem(adapter.getItemCount() - 1).getMessage(), Toast.LENGTH_SHORT).show();
+                        // 取得NotificationManager物件
+                        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                        Notification.BigPictureStyle bigPictureStyle = new Notification.BigPictureStyle();
+                        bigPictureStyle.setBigContentTitle("Photo");
+                        bigPictureStyle.setSummaryText("SummaryText");
+                        // 建立大圖示需要的Bitmap物件
+                        Bitmap bitmap = ((BitmapDrawable) getResources().getDrawable(R.drawable.b123)).getBitmap();
+                        bigPictureStyle.bigPicture(bitmap);
+
+                        NotificationChannel notificationChannel = new NotificationChannel("0", "notice", NotificationManager.IMPORTANCE_HIGH);
+                        Notification.Builder builder = new Notification.Builder(MainActivity.this, "0")
+                                .setSmallIcon(R.drawable.b123)
+                                .setColor(Color.BLUE)
+                                .setContentTitle(adapter.getItem(adapter.getItemCount() - 1).getUserName()) //顯示別人名字
+                                .setContentText(adapter.getItem(adapter.getItemCount() - 1).getMessage())
+                                .setWhen(System.currentTimeMillis())
+                                // 訊息內容較長會超過一行時預設會將訊息結尾變成...而不能完整顯示，此時可以再加入一行BigText讓長訊息能完整顯示
+                                .setChannelId("0")
+                                .setDefaults(Notification.DEFAULT_VIBRATE) // 加上提醒效果
+                                .setContentIntent(pendingIntent)  // 設置Intent
+                                .addAction(R.drawable.b123, "查看", pendingIntent)  // 增加「查看」
+                                .setAutoCancel(true)    // 點擊後讓Notification消失
+                                .setStyle(bigPictureStyle);
+                        notificationManager.createNotificationChannel(notificationChannel);
+                        notificationManager.notify(0, builder.build());
+
+                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+
+                    } else {
+                        Toast.makeText(MainActivity.this, adapter.getItem(adapter.getItemCount() - 1).getMessage(), Toast.LENGTH_SHORT).show();
+                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
 
     }
 
